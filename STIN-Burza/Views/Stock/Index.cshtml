@@ -1,0 +1,30 @@
+﻿@model List<Stock>
+
+@{
+    ViewBag.Title = "Oblíbené položky";
+}
+
+<h2>Oblíbené položky</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Název</th>
+            <th>Ceny (7 dní)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var stock in Model)
+        {
+            <tr>
+                <td>@stock.Name</td>
+                <td>
+                    @foreach (var price in stock.PriceHistory)
+                    {
+                        <div>@price.Date.ToShortDateString() - @price.Price</div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
