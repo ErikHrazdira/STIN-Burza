@@ -24,6 +24,12 @@
                         <div>@price.Date.ToShortDateString() - @price.Price</div>
                     }
                 </td>
+                <td>
+                    <form asp-action="RemoveFavorite" method="post">
+                        <input type="hidden" name="name" value="@stock.Name" />
+                        <button type="submit" class="btn btn-danger">Odstranit</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>

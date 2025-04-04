@@ -20,5 +20,11 @@ namespace STIN_Burza.Services
             return new List<Stock>(); //kdyz neexistuje tak vrati prazdny
         }
 
+        public void SaveFavoriteStocks(List<Stock> stocks)
+        {
+            var json = JsonConvert.SerializeObject(stocks, Formatting.Indented);
+            System.IO.File.WriteAllText(filePath, json); // Uloží zpět do souboru
+        }
+
     }
 }
