@@ -2,7 +2,7 @@ name: Build and deploy .NET Core application to Web App STIN-Burza
 on:
   push:
     branches:
-    - favoriteStocks
+    - main
 env:
   AZURE_WEBAPP_NAME: STIN-Burza
   AZURE_WEBAPP_PACKAGE_PATH: STIN-Burza\published
