@@ -6,6 +6,11 @@
 
 <h2>Oblíbené položky</h2>
 
+<form asp-action="AddFavorite" method="post">
+    <input type="text" name="name" placeholder="Zadej název akcie" required />
+    <button type="submit">Přidat</button>
+</form>
+
 <table class="table">
     <thead>
         <tr>
