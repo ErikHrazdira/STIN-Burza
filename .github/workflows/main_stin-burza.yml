@@ -64,5 +64,5 @@ jobs:
         with:
           app-name: 'STIN-Burza'
           slot-name: 'Production'
-          package: .
+          package: myapp
           
