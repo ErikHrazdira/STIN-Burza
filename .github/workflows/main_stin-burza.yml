@@ -1,7 +1,7 @@
 name: Build and deploy ASP.Net Core app to Azure Web App - STIN-Burza
 
 on:
-  push:
+  push: #ll
     branches:
       - main
   workflow_dispatch:
