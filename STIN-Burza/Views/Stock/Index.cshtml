@@ -62,17 +62,19 @@
     </table>
 
     <h5 class="mt-5">📝 Log událostí</h5>
-    <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
-        @if (ViewBag.Log != null && ((List<string>)ViewBag.Log).Any())
-        {
-            foreach (var line in (List<string>)ViewBag.Log)
+    <div class="bg-light p-3 rounded border" style="max-height: 300px; overflow-y: auto;">
+        <ul class="list-unstyled mb-0">
+            @if (ViewBag.LogLines != null)
             {
-                <div class="small text-muted">@line</div>
+                foreach (string line in ViewBag.LogLines)
+                {
+                    <li><code>@line</code></li>
+                }
             }
-        }
-        else
-        {
-            <div class="fst-italic text-secondary">Zatím žádné události.</div>
-        }
+            else
+            {
+                <li><em>Žádné logy k dispozici.</em></li>
+            }
+        </ul>
     </div>
 </div>

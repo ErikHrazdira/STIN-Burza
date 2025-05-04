@@ -1,7 +1,18 @@
+using STIN_Burza.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSingleton(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var logFilePath = config["Configuration:LogFilePath"];
+    return new Logger(logFilePath);
+});
+
+builder.Services.AddScoped<StockService>();
 
 var app = builder.Build();
 

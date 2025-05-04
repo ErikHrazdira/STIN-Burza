@@ -9,7 +9,15 @@ namespace STIN_Burza.Controllers
 {
     public class StockController : Controller
     {
-        private StockService stockService = new StockService();
+        private readonly StockService stockService = new();
+        private readonly Logger logger;
+
+        // Konstruktory pro injektování služeb
+        public StockController(StockService stockService, Logger logger)
+        {
+            this.stockService = stockService;
+            this.logger = logger;
+        }
 
         public IActionResult Index()
         {
@@ -18,6 +26,8 @@ namespace STIN_Burza.Controllers
             {
                 stocks = new List<Stock>(); // Pokud je seznam null, nastavíme prázdný seznam
             }
+            logger.Log("Načtení oblíbených položek.");
+            ViewBag.LogLines = logger.GetLastLines(); // Načte logy pro zobrazení na stránce
             return View(stocks);
         }
 
@@ -32,10 +42,17 @@ namespace STIN_Burza.Controllers
             {
                 stocks.Remove(stockToRemove); // Odstraní položku
                 stockService.SaveFavoriteStocks(stocks); // Uloží aktualizovaný seznam
+
+                logger.Log($"Položka '{name}' byla odstraněna z oblíbených.");
+            }
+            else {
+                logger.Log($"Pokud položka '{name}' neexistuje v oblíbených, odstranění neprobíhá.");
             }
 
-            return RedirectToAction("Index"); // Přesměruje zpět na hlavní stránku
+                return RedirectToAction("Index"); // Přesměruje zpět na hlavní stránku
         }
+
+
 
     }
 
