@@ -2,40 +2,77 @@
 
 @{
     ViewBag.Title = "Oblíbené položky";
+    var currentRatingThreshold = ViewBag.CurrentRatingThreshold ?? 0;
 }
 
-<h2>Oblíbené položky</h2>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">📈 Oblíbené položky</h2>
+        <form asp-action="UpdateRatingThreshold" method="post" class="d-flex align-items-center">
+            <label for="ratingThreshold" class="form-label me-2 mb-0">Hodnota nákup/prodej:</label>
+            <input type="number" id="ratingThreshold" name="ratingThreshold"
+                   class="form-control form-control-sm me-2" min="-10" max="10" value="@currentRatingThreshold" />
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Uložit</button>
+        </form>
+    </div>
 
-<form asp-action="AddFavorite" method="post">
-    <input type="text" name="name" placeholder="Zadej název akcie" required />
-    <button type="submit">Přidat</button>
-</form>
+    <div class="card p-3 mb-4">
+        <form asp-action="AddFavorite" method="post" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" name="name" class="form-control" placeholder="Zadej název akcie" required />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Přidat</button>
+            </div>
+        </form>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Název</th>
-            <th>Ceny (7 dní)</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var stock in Model)
-        {
+    <table class="table table-hover table-bordered align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@stock.Name</td>
-                <td>
-                    @foreach (var price in stock.PriceHistory)
-                    {
-                        <div>@price.Date.ToShortDateString() - @price.Price</div>
-                    }
-                </td>
-                <td>
-                    <form asp-action="RemoveFavorite" method="post">
-                        <input type="hidden" name="name" value="@stock.Name" />
-                        <button type="submit" class="btn btn-danger">Odstranit</button>
-                    </form>
-                </td>
+                <th style="width: 20%">Název</th>
+                <th style="width: 60%">Ceny (7 dní)</th>
+                <th style="width: 20%">Akce</th>
             </tr>
+        </thead>
+        <tbody>
+            @foreach (var stock in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@stock.Name</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var price in stock.PriceHistory)
+                            {
+                                <span class="badge bg-secondary">
+                                    @price.Date.ToString("dd.MM") – @price.Price
+                                </span>
+                            }
+                        </div>
+                    </td>
+                    <td>
+                        <form asp-action="RemoveFavorite" method="post">
+                            <input type="hidden" name="name" value="@stock.Name" />
+                            <button type="submit" class="btn btn-sm btn-danger">Odstranit</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h5 class="mt-5">📝 Log událostí</h5>
+    <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+        @if (ViewBag.Log != null && ((List<string>)ViewBag.Log).Any())
+        {
+            foreach (var line in (List<string>)ViewBag.Log)
+            {
+                <div class="small text-muted">@line</div>
+            }
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="fst-italic text-secondary">Zatím žádné události.</div>
+        }
+    </div>
+</div>
