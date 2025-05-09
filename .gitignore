@@ -398,6 +398,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-
-Logs/log.txt
-App_Data/favorite_stocks.json
