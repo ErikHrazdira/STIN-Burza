@@ -82,7 +82,23 @@ namespace STIN_Burza.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateAllFavorites()
+        {
+            var favoriteStocks = stockService.LoadFavoriteStocks();
+            foreach (var stock in favoriteStocks)
+            {
+                var updatedStock = await alphaVantageService.GetStockWithHistoryAsync(stock.Name);
+                if (updatedStock != null)
+                {
+                    stock.PriceHistory = updatedStock.PriceHistory; // Aktualizace historických cen
+                }
+            }
 
+            stockService.SaveFavoriteStocks(favoriteStocks); // Uložení aktualizovaných dat
+
+            return RedirectToAction("Index");
+        }
 
 
     }
