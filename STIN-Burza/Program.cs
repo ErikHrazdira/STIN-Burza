@@ -1,3 +1,4 @@
+using STIN_Burza.Filters;
 using STIN_Burza.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,11 +10,15 @@ builder.Services.AddSingleton(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
     var logFilePath = config["Configuration:LogFilePath"];
-    return new Logger(logFilePath);
+    return new Logger(logFilePath ?? "Logs/log.txt");
 });
 
 builder.Services.AddScoped<StockService>();
 builder.Services.AddSingleton<AlphaVantageService>();
+
+builder.Services.AddTransient<IStockFilter, ConsecutiveFallingDaysFilter>();
+builder.Services.AddTransient<IStockFilter, PriceDropsInLastWindowFilter>();
+builder.Services.AddTransient<StockFilterManager>();
 
 
 var app = builder.Build();

@@ -12,13 +12,14 @@ namespace STIN_Burza.Controllers
         private readonly StockService stockService;
         private readonly Logger logger;
         private readonly AlphaVantageService alphaVantageService;
+        private readonly StockFilterManager stockFilterManager;
 
-        // Konstruktory pro injektování služeb
-        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService)
+        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager)
         {
             this.stockService = stockService;
             this.logger = logger;
             this.alphaVantageService = alphaVantageService;
+            this.stockFilterManager = stockFilterManager;
         }
 
         public IActionResult Index()
@@ -100,6 +101,35 @@ namespace STIN_Burza.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        public IActionResult RunFilters()
+        {
+            var favorites = stockService.LoadFavoriteStocks();
+            var historicalData = new Dictionary<Stock, List<StockPrice>>();
+
+            foreach (var stock in favorites)
+            {
+                historicalData[stock] = stock.PriceHistory;
+            }
+
+            // Získání názvů položek, které prošly filtry
+            var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
+
+            // Logování výsledků
+            logger.Log("Spuštěn proces filtrování.");
+            if (passingStockNames.Any())
+            {
+                logger.Log($"Položky, které prošly filtry: {string.Join(", ", passingStockNames)}");
+            }
+            else
+            {
+                logger.Log("Žádná položka neprošla všemi filtry.");
+            }
+
+            ViewBag.FilteredStocks = passingStockNames;
+            ViewBag.LogLines = logger.GetLastLines();
+            return View("Index", favorites);
+        }
 
     }
 
