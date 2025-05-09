@@ -19,34 +19,22 @@ namespace STIN_Burza.Services
 
         public async Task<Stock?> GetStockWithHistoryAsync(string symbol)
         {
-            var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}&outputsize=compact";
             try
             {
-                var response = await httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var jsonString = await response.Content.ReadAsStringAsync();
-                var json = JObject.Parse(jsonString);
-
-                if (!json.ContainsKey("Time Series (Daily)"))
-                {
-                    logger.Log($"Symbol '{symbol}' nebyl nalezen nebo API nevrátila data.");
-                    return null;
-                }
-
-                var series = json["Time Series (Daily)"]!;
-                var validDates = GetPreviousWorkingDays(series, workingDaysBack);
-
                 var stock = new Stock(symbol);
 
-                foreach (var date in validDates)
+                // Krok 1: Získání dnešní ceny, pokud je pracovní den
+                if (DateTime.Today.DayOfWeek != DayOfWeek.Saturday && DateTime.Today.DayOfWeek != DayOfWeek.Sunday)
                 {
-                    var entry = series[date.ToString("yyyy-MM-dd")];
-                    if (entry != null && entry["4. close"] != null)
-                    {
-                        double price = double.Parse(entry["4. close"]!.ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                        stock.AddPrice(date, price);
-                    }
+                    var todayPrice = await GetIntradayStockPrice(symbol);
+                    stock.AddPrice(DateTime.Today, todayPrice);
+                }
+
+                // Krok 2: Získání historických cen
+                var previousPrices = await GetDailyStockPrices(symbol, workingDaysBack - stock.PriceHistory.Count);
+                foreach (var price in previousPrices)
+                {
+                    stock.AddPrice(price.Date, price.Price);
                 }
 
                 logger.Log($"Stažena data pro symbol '{symbol}' ({stock.PriceHistory.Count} dní).");
@@ -59,6 +47,44 @@ namespace STIN_Burza.Services
             }
         }
 
+        // Získání ceny pro dnešní den (pokud je pracovní den)
+        private async Task<double> GetIntradayStockPrice(string symbol)
+        {
+            var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=15min&apikey={apiKey}";
+            var response = await httpClient.GetStringAsync(url);
+
+            var data = JObject.Parse(response);
+            var latestTime = data["Time Series (15min)"]?.Children<JProperty>().FirstOrDefault()?.Name;
+
+            if (latestTime != null)
+            {
+                var price = data["Time Series (15min)"][latestTime]["4. close"]?.ToString();
+                return price != null ? double.Parse(price, System.Globalization.CultureInfo.InvariantCulture) : 0;
+            }
+
+            throw new Exception("Could not retrieve today's intraday price.");
+        }
+
+        // Získání historických cen za poslední dny
+        private async Task<List<StockPrice>> GetDailyStockPrices(string symbol, int count)
+        {
+            var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}";
+            var response = await httpClient.GetStringAsync(url);
+
+            var data = JObject.Parse(response);
+            var series = data["Time Series (Daily)"];
+
+            var dates = GetPreviousWorkingDays(series, count);
+
+            return dates.Select(date =>
+            {
+                var entry = series[date.ToString("yyyy-MM-dd")];
+                var price = double.Parse(entry["4. close"].ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                return new StockPrice(date, price);
+            }).ToList();
+        }
+
+        // Získání pracovních dnů z API
         private List<DateTime> GetPreviousWorkingDays(JToken series, int count)
         {
             var allDates = series.Children<JProperty>()
@@ -70,6 +96,5 @@ namespace STIN_Burza.Services
 
             return allDates;
         }
-
     }
 }
