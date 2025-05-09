@@ -9,14 +9,16 @@ namespace STIN_Burza.Controllers
 {
     public class StockController : Controller
     {
-        private readonly StockService stockService = new();
+        private readonly StockService stockService;
         private readonly Logger logger;
+        private readonly AlphaVantageService alphaVantageService;
 
         // Konstruktory pro injektování služeb
-        public StockController(StockService stockService, Logger logger)
+        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService)
         {
             this.stockService = stockService;
             this.logger = logger;
+            this.alphaVantageService = alphaVantageService;
         }
 
         public IActionResult Index()
@@ -51,6 +53,35 @@ namespace STIN_Burza.Controllers
 
                 return RedirectToAction("Index"); // Přesměruje zpět na hlavní stránku
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddFavorite(string name)
+        {
+            var existingStocks = stockService.LoadFavoriteStocks();
+
+            // Kontrola duplicit
+            if (existingStocks.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                logger.Log($"Položka '{name}' už je v oblíbených.");
+                return RedirectToAction("Index");
+            }
+
+            // Získání nové akcie z API
+            var newStock = await alphaVantageService.GetStockWithHistoryAsync(name);
+            if (newStock == null || newStock.PriceHistory.Count == 0)
+            {
+                logger.Log($"Nepodařilo se přidat '{name}' – akcie nenalezena nebo neobsahuje data.");
+                return RedirectToAction("Index");
+            }
+
+            // Přidání a uložení
+            existingStocks.Add(newStock);
+            stockService.SaveFavoriteStocks(existingStocks);
+            logger.Log($"Položka '{name}' byla přidána do oblíbených.");
+
+            return RedirectToAction("Index");
+        }
+
 
 
 

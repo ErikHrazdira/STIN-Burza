@@ -13,6 +13,8 @@ builder.Services.AddSingleton(provider =>
 });
 
 builder.Services.AddScoped<StockService>();
+builder.Services.AddSingleton<AlphaVantageService>();
+
 
 var app = builder.Build();
 
