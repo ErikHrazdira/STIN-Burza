@@ -14,14 +14,31 @@ namespace STIN_Burza.Controllers
         private readonly AlphaVantageService alphaVantageService;
         private readonly StockFilterManager stockFilterManager;
         private readonly ExternalApiService externalApiService;
+        private readonly string _ratingThresholdFilePath;
+        private const int DefaultRatingThreshold = 0;
 
-        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager, ExternalApiService externalApiService)
+        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager, ExternalApiService externalApiService, IConfiguration configuration, IWebHostEnvironment environment)
         {
             this.stockService = stockService;
             this.logger = logger;
             this.alphaVantageService = alphaVantageService;
             this.stockFilterManager = stockFilterManager;
             this.externalApiService = externalApiService;
+
+            _ratingThresholdFilePath = configuration["Configuration:RatingThresholdFilePath"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "rating_threshold.txt");
+
+            // Vytvoří soubor, pokud neexistuje a zapíše výchozí hodnotu
+            if (!System.IO.File.Exists(_ratingThresholdFilePath))
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(_ratingThresholdFilePath, DefaultRatingThreshold.ToString());
+                }
+                catch (Exception ex)
+                {
+                    logger.Log($"Chyba při vytváření souboru pro práh hodnocení: {ex.Message}, cesta: {_ratingThresholdFilePath}");
+                }
+            }
         }
 
         public IActionResult Index()
@@ -136,6 +153,48 @@ namespace STIN_Burza.Controllers
         ViewBag.LogLines = logger.GetLastLines();
         return View("Index", favorites);
     }
+
+        [HttpPost]
+        public IActionResult UpdateRatingThreshold(int ratingThreshold)
+        {
+            SaveRatingThreshold(ratingThreshold);
+            logger.Log($"Uživatel uložil nový práh hodnocení: {ratingThreshold}, soubor: {_ratingThresholdFilePath}");
+            return RedirectToAction("Index");
+        }
+
+        private int LoadRatingThreshold()
+        {
+            try
+            {
+                string content = System.IO.File.ReadAllText(_ratingThresholdFilePath);
+                if (int.TryParse(content, out int threshold))
+                {
+                    return threshold;
+                }
+                else
+                {
+                    logger.Log($"Nepodařilo se načíst práh hodnocení ze souboru '{_ratingThresholdFilePath}', použita výchozí hodnota: {DefaultRatingThreshold}");
+                    return DefaultRatingThreshold;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Chyba při načítání prahu hodnocení ze souboru '{_ratingThresholdFilePath}': {ex.Message}, použita výchozí hodnota: {DefaultRatingThreshold}");
+                return DefaultRatingThreshold;
+            }
+        }
+
+        private void SaveRatingThreshold(int threshold)
+        {
+            try
+            {
+                System.IO.File.WriteAllText(_ratingThresholdFilePath, threshold.ToString());
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Chyba při ukládání prahu hodnocení do souboru '{_ratingThresholdFilePath}': {ex.Message}");
+            }
+        }
 
     }
 
