@@ -20,6 +20,8 @@ builder.Services.AddTransient<IStockFilter, ConsecutiveFallingDaysFilter>();
 builder.Services.AddTransient<IStockFilter, PriceDropsInLastWindowFilter>();
 builder.Services.AddTransient<StockFilterManager>();
 
+builder.Services.AddHttpClient<ExternalApiService>();
+builder.Services.AddTransient<ExternalApiService>();
 
 var app = builder.Build();
 

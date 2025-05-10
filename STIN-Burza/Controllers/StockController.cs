@@ -13,13 +13,15 @@ namespace STIN_Burza.Controllers
         private readonly Logger logger;
         private readonly AlphaVantageService alphaVantageService;
         private readonly StockFilterManager stockFilterManager;
+        private readonly ExternalApiService externalApiService;
 
-        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager)
+        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager, ExternalApiService externalApiService)
         {
             this.stockService = stockService;
             this.logger = logger;
             this.alphaVantageService = alphaVantageService;
             this.stockFilterManager = stockFilterManager;
+            this.externalApiService = externalApiService;
         }
 
         public IActionResult Index()
@@ -102,34 +104,38 @@ namespace STIN_Burza.Controllers
         }
 
         [HttpPost]
-        public IActionResult RunFilters()
+    public async Task<IActionResult> RunFilters()
+    {
+        logger.Log("Spuštěn proces filtrování a odesílání dat.");
+
+        var favorites = stockService.LoadFavoriteStocks();
+        var historicalData = new Dictionary<Stock, List<StockPrice>>();
+
+        foreach (var stock in favorites)
         {
-            var favorites = stockService.LoadFavoriteStocks();
-            var historicalData = new Dictionary<Stock, List<StockPrice>>();
-
-            foreach (var stock in favorites)
-            {
-                historicalData[stock] = stock.PriceHistory;
-            }
-
-            // Získání názvů položek, které prošly filtry
-            var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
-
-            // Logování výsledků
-            logger.Log("Spuštěn proces filtrování.");
-            if (passingStockNames.Any())
-            {
-                logger.Log($"Položky, které prošly filtry: {string.Join(", ", passingStockNames)}");
-            }
-            else
-            {
-                logger.Log("Žádná položka neprošla všemi filtry.");
-            }
-
-            ViewBag.FilteredStocks = passingStockNames;
-            ViewBag.LogLines = logger.GetLastLines();
-            return View("Index", favorites);
+            // Předpokládáme, že PriceHistory je již naplněna daty
+            historicalData[stock] = stock.PriceHistory;
         }
+
+        // Získání názvů položek, které prošly filtry
+        var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
+
+        // Odeslání dat na externí API
+        if (passingStockNames.Any())
+        {
+            logger.Log($"Odesílám informace o položkách: {string.Join(", ", passingStockNames)} na externí API.");
+            await externalApiService.SendPassingStockNames(passingStockNames);
+                logger.Log("Odesílání na externí API dokončeno.");
+        }
+        else
+        {
+                logger.Log("Žádná položka neprošla všemi filtry, nic nebylo odesláno na externí API.");
+        }
+
+        ViewBag.FilteredStocks = passingStockNames;
+        ViewBag.LogLines = logger.GetLastLines();
+        return View("Index", favorites);
+    }
 
     }
 
