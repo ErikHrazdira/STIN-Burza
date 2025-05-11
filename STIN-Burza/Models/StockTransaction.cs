@@ -16,5 +16,13 @@
             Rating = null;
             Sell = null;
         }
+
+        public StockTransaction()
+        {
+            Name = string.Empty;
+            Date = DateTime.MinValue;
+            Rating = null;
+            Sell = null;
+        }
     }
 }

@@ -11,6 +11,10 @@ namespace STIN_Burza.Services
         private readonly string _apiUrl;
         private readonly int _apiPort;
         private readonly string _listStockEndpoint;
+        private readonly string _sendSellRecommendationEndpoint;
+
+        public HttpClient HttpClient => _httpClient;
+        public string SendSellRecommendationEndpoint => _sendSellRecommendationEndpoint;
 
         public ExternalApiService(HttpClient httpClient, IConfiguration configuration, Logger logger)
         {
@@ -21,6 +25,7 @@ namespace STIN_Burza.Services
             _apiUrl = _configuration["ExternalApi:Url"] ?? string.Empty;
             _apiPort = _configuration.GetValue<int?>("ExternalApi:Port") ?? 0;
             _listStockEndpoint = _configuration["ExternalApi:ListStockEndpoint"] ?? string.Empty;
+            _sendSellRecommendationEndpoint = _configuration["ExternalApi:SendSellRecommendationEndpoint"] ?? string.Empty;
 
 
             if (!string.IsNullOrEmpty(_apiUrl) && _apiPort > 0)
@@ -61,6 +66,31 @@ namespace STIN_Burza.Services
             catch (Exception ex)
             {
                 _logger.Log($"Chyba při odesílání dat: {ex.Message}");
+            }
+        }
+
+        public async Task SendSellRecommendations(List<StockTransaction> recommendations)
+        {
+            if (_httpClient.BaseAddress == null || string.IsNullOrEmpty(_sendSellRecommendationEndpoint))
+            {
+                _logger.Log("Nelze odeslat doporučení k prodeji kvůli chybějící konfiguraci API pro odeslání doporučení.");
+                return;
+            }
+
+            try
+            {
+                _logger.Log($"Odesílám doporučení k prodeji na {_httpClient.BaseAddress}/{_sendSellRecommendationEndpoint}");
+                _logger.Log($"Odesílaná doporučení: {JsonSerializer.Serialize(recommendations)}");
+
+                // Simulace odeslání doporučení
+                // var response = await _httpClient.PostAsJsonAsync($"/{_sendSellRecommendationEndpoint}", recommendations);
+                // response.EnsureSuccessStatusCode();
+
+                _logger.Log("Simulace úspěšného odeslání doporučení k prodeji.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Log($"Chyba při odesílání doporučení k prodeji: {ex.Message}");
             }
         }
     }

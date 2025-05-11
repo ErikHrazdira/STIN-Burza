@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 builder.Services.AddSingleton(provider =>
 {
@@ -43,5 +44,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Stock}/{action=Index}/{id?}");
+
+app.MapControllers();
 
 app.Run();
