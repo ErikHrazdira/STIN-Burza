@@ -16,12 +16,12 @@
             File.AppendAllLines(logFilePath, new[] { logMessage });
         }
 
-        public List<string> GetLastLines(int lineCount = 20)
+        public List<string> GetLastLines(int lineCount = 100)
         {
             if (!File.Exists(logFilePath))
                 return new List<string>();
 
-            var lines = File.ReadLines(logFilePath).Reverse().Take(lineCount).ToList();
+            var lines = File.ReadLines(logFilePath).Reverse().Take(lineCount).Reverse().ToList();
             return lines;
         }
     }

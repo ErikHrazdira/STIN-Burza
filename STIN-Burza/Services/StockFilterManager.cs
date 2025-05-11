@@ -25,7 +25,7 @@ namespace STIN_Burza.Services
                 {
                     if (filter.ShouldFilterOut(stock))
                     {
-                        _logger.Log($"Položka '{stock.Name}' neprošla filtrací kvůli: '{filter.GetType().Name}'.");
+                        _logger.Log($"Položka '{stock.Name}' neprošla filtrací přes: '{filter.GetType().Name}'.");
                         shouldFilter = true;
                         break;
                     }

@@ -48,7 +48,6 @@ namespace STIN_Burza.Controllers
             {
                 stocks = new List<Stock>(); // Pokud je seznam null, nastavíme prázdný seznam
             }
-            logger.Log("Načtení oblíbených položek.");
             ViewBag.LogLines = logger.GetLastLines(); // Načte logy pro zobrazení na stránce
             return View(stocks);
         }

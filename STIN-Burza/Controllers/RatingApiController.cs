@@ -24,11 +24,13 @@ namespace STIN_Burza.Controllers
         [HttpPost("rating")]
         public async Task<IActionResult> ReceiveRating([FromBody] JsonElement receivedTransactionsElement)
         {
+            _logger.Log("Probíhá příjem dat na API /rating");
             if (receivedTransactionsElement.ValueKind != JsonValueKind.Array)
             {
                 _logger.Log("Přijatá data nejsou ve formátu JSON pole.");
                 return BadRequest("Očekáváno JSON pole s hodnoceními.");
             }
+            _logger.Log("Data jsou typu JSON.");
 
             var validTransactions = new List<StockTransaction>();
             var invalidTransactionsCount = 0;
@@ -37,13 +39,13 @@ namespace STIN_Burza.Controllers
             {
                 if (element.ValueKind != JsonValueKind.Object)
                 {
-                    _logger.Log("Přijatý prvek pole není JSON objekt.");
+                    _logger.Log($"Přijatý prvek pole není JSON objekt: {element.ToString()}");
                     invalidTransactionsCount++;
                     continue;
                 }
 
                 var propertyCount = 0;
-                string name = null;
+                string? name = null;
                 DateTime date = DateTime.MinValue;
                 int? rating = null;
 
@@ -77,6 +79,7 @@ namespace STIN_Burza.Controllers
                 {
                     if (!string.IsNullOrEmpty(name) && date != DateTime.MinValue && rating.HasValue && rating >= -10 && rating <= 10)
                     {
+                        _logger.Log($"Přijata validní položka: {element.ToString()}");
                         int ratingThreshold = _configuration.GetValue<int>("Configuration:RatingThreshold");
                         int sellRecommendation = rating < ratingThreshold ? 1 : 0;
                         validTransactions.Add(new StockTransaction
@@ -89,25 +92,25 @@ namespace STIN_Burza.Controllers
                     }
                     else
                     {
-                        _logger.Log($"Přijato hodnocení pro '{name}' s neplatnými daty (defaultní hodnota nebo mimo rozsah). Položka přeskočena.");
+                        _logger.Log($"Přijata položka s neplatnými daty: {element.ToString()}. Položka přeskočena.");
                         invalidTransactionsCount++;
                     }
                 }
                 else
                 {
-                    _logger.Log($"Přijat objekt s {propertyCount} vlastnostmi (očekáváno 4). Položka přeskočena.");
+                    _logger.Log($"Přijata položka s nesprávným počtem vlastností ({propertyCount}, očekáváno 4): {element.ToString()}. Položka přeskočena.");
                     invalidTransactionsCount++;
                 }
             }
 
             if (invalidTransactionsCount > 0)
             {
-                _logger.Log($"Přeskočeno {invalidTransactionsCount} neplatných položek s hodnocením.");
+                _logger.Log($"Přeskočeno {invalidTransactionsCount} neplatných položek.");
             }
 
             if (validTransactions.Any())
             {
-                _logger.Log($"Odesílám doporučení k prodeji na {_externalApiService.HttpClient?.BaseAddress}/{_externalApiService.SendSellRecommendationEndpoint}: {JsonSerializer.Serialize(validTransactions)}");
+                _logger.Log($"Předávám k odeslání: {JsonSerializer.Serialize(validTransactions)}");
                 await _externalApiService.SendSellRecommendations(validTransactions);
                 return Ok("Hodnocení zpracována a doporučení odeslána.");
             }

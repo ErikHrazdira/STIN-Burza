@@ -80,13 +80,10 @@ namespace STIN_Burza.Services
             try
             {
                 _logger.Log($"Odesílám doporučení k prodeji na {_httpClient.BaseAddress}/{_sendSellRecommendationEndpoint}");
-                _logger.Log($"Odesílaná doporučení: {JsonSerializer.Serialize(recommendations)}");
 
                 // Simulace odeslání doporučení
                 // var response = await _httpClient.PostAsJsonAsync($"/{_sendSellRecommendationEndpoint}", recommendations);
                 // response.EnsureSuccessStatusCode();
-
-                _logger.Log("Simulace úspěšného odeslání doporučení k prodeji.");
             }
             catch (Exception ex)
             {

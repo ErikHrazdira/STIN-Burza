@@ -15,7 +15,7 @@ namespace STIN_Burza.Services
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<List<Stock>>(json) ?? new List<Stock>(); // Pokud JSON je null, vrátí prázdný seznam
+                return JsonConvert.DeserializeObject<List<Stock>>(json) ?? new List<Stock>();
             }
             return new List<Stock>(); //kdyz neexistuje tak vrati prazdny
         }
