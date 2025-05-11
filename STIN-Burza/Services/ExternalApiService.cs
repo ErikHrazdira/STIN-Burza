@@ -58,8 +58,8 @@ namespace STIN_Burza.Services
                 _logger.Log($"Odesílaná data: {JsonSerializer.Serialize(transactions)}");
 
                 // Simulace odeslání
-                //var response = await _httpClient.PostAsJsonAsync($"/{_listStockEndpoint}", transactions);
-                //response.EnsureSuccessStatusCode();
+                var response = await _httpClient.PostAsJsonAsync($"/{_listStockEndpoint}", transactions);
+                response.EnsureSuccessStatusCode();
 
                 _logger.Log("Simulace úspěšného odeslání dat.");
             }
@@ -82,8 +82,8 @@ namespace STIN_Burza.Services
                 _logger.Log($"Odesílám doporučení k prodeji na {_httpClient.BaseAddress}/{_sendSellRecommendationEndpoint}");
 
                 // Simulace odeslání doporučení
-                // var response = await _httpClient.PostAsJsonAsync($"/{_sendSellRecommendationEndpoint}", recommendations);
-                // response.EnsureSuccessStatusCode();
+                 var response = await _httpClient.PostAsJsonAsync($"/{_sendSellRecommendationEndpoint}", recommendations);
+                 response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)
             {

@@ -120,7 +120,7 @@ namespace STIN_Burza.Controllers
         }
 
         [HttpPost]
-    public async Task<IActionResult> RunFilters()
+    public async Task<IActionResult> StartProcess()
     {
         logger.Log("Spuštěn proces filtrování a odesílání dat.");
 
@@ -150,7 +150,7 @@ namespace STIN_Burza.Controllers
 
         ViewBag.FilteredStocks = passingStockNames;
         ViewBag.LogLines = logger.GetLastLines();
-        return View("Index", favorites);
+        return RedirectToAction("Index");
     }
 
         [HttpPost]
