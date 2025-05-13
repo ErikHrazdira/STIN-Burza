@@ -54,12 +54,21 @@ namespace STIN_Burza.Services
             var response = await httpClient.GetStringAsync(url);
 
             var data = JObject.Parse(response);
-            var latestTime = data["Time Series (15min)"]?.Children<JProperty>().FirstOrDefault()?.Name;
+            var timeSeries = data["Time Series (15min)"];
 
-            if (latestTime != null)
+            if (timeSeries != null)
             {
-                var price = data["Time Series (15min)"][latestTime]["4. close"]?.ToString();
-                return price != null ? double.Parse(price, System.Globalization.CultureInfo.InvariantCulture) : 0;
+                var latestTime = timeSeries.Children<JProperty>().FirstOrDefault()?.Name;
+
+                if (latestTime != null)
+                {
+                    var latestData = timeSeries[latestTime];
+                    if (latestData != null)
+                    {
+                        var price = latestData["4. close"]?.ToString();
+                        return price != null ? double.Parse(price, System.Globalization.CultureInfo.InvariantCulture) : 0;
+                    }
+                }
             }
 
             throw new Exception("Could not retrieve today's intraday price.");
@@ -74,14 +83,33 @@ namespace STIN_Burza.Services
             var data = JObject.Parse(response);
             var series = data["Time Series (Daily)"];
 
+            if (series == null)
+            {
+                logger.Log("Chybí data 'Time Series (Daily)' v odpovědi.");
+                return new List<StockPrice>();
+            }
+
             var dates = GetPreviousWorkingDays(series, count);
 
             return dates.Select(date =>
             {
                 var entry = series[date.ToString("yyyy-MM-dd")];
-                var price = double.Parse(entry["4. close"].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                return new StockPrice(date, price);
-            }).ToList();
+                if (entry == null || entry["4. close"] == null)
+                {
+                    logger.Log($"Chybí data o ceně pro datum {date:yyyy-MM-dd}.");
+                    return null;
+                }
+
+                var priceString = entry["4. close"]?.ToString();
+                if (!string.IsNullOrEmpty(priceString))
+                {
+                    var price = double.Parse(priceString, System.Globalization.CultureInfo.InvariantCulture);
+                    return new StockPrice(date, price);
+                }
+
+                logger.Log($"Chybí nebo je neplatná cena pro datum {date:yyyy-MM-dd}.");
+                return null;
+            }).Where(price => price != null).ToList()!;
         }
 
         // Získání pracovních dnů z API

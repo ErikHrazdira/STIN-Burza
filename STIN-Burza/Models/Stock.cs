@@ -1,15 +1,9 @@
 ﻿namespace STIN_Burza.Models
 {
-    public class Stock
+    public class Stock(string name)
     {
-        public string Name { get; set; }
-        public List<StockPrice> PriceHistory { get; set; }
-
-        public Stock(string name)
-        {
-            Name = name;
-            PriceHistory = new List<StockPrice>();
-        }
+        public string Name { get; set; } = name;
+        public List<StockPrice> PriceHistory { get; set; } = [];
 
         // Přidání ceny k historii
         public void AddPrice(DateTime date, double price)
@@ -19,15 +13,9 @@
     }
 
     // Cena pro jednu položku (datum a cena)
-    public class StockPrice
+    public class StockPrice(DateTime date, double price)
     {
-        public DateTime Date { get; set; }
-        public double Price { get; set; }
-
-        public StockPrice(DateTime date, double price)
-        {
-            Date = date;
-            Price = price;
-        }
+        public DateTime Date { get; set; } = date;
+        public double Price { get; set; } = price;
     }
 }

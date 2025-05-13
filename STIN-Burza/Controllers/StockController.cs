@@ -47,10 +47,7 @@ namespace STIN_Burza.Controllers
         public IActionResult Index()
         {
             var stocks = stockService.LoadFavoriteStocks();
-            if (stocks == null)
-            {
-                stocks = new List<Stock>(); // Pokud je seznam null, nastavíme prázdný seznam
-            }
+            stocks ??= []; // Pokud je seznam null, nastavíme prázdný seznam
             ViewBag.LogLines = logger.GetLastLines(); // Načte logy pro zobrazení na stránce
             return View(stocks);
         }
@@ -136,9 +133,9 @@ namespace STIN_Burza.Controllers
             return RedirectToAction("Index");
         }
 
-        private bool ShouldUpdate(List<StockPrice> history, int daysToCheck)
+        private static bool ShouldUpdate(List<StockPrice> history, int daysToCheck)
         {
-            if (history == null || !history.Any())
+            if (history == null || history.Count == 0)
             {
                 return true; // Žádná data, je třeba aktualizovat
             }
@@ -188,7 +185,7 @@ namespace STIN_Burza.Controllers
             var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
 
             // Odeslání dat na externí API
-            if (passingStockNames.Any())
+            if (passingStockNames.Count != 0)
             {
                 logger.Log($"Odesílám informace o položkách: {string.Join(", ", passingStockNames)} na externí API.");
                 await externalApiService.SendPassingStockNames(passingStockNames);
