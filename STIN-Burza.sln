@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STIN-Burza", "STIN-Burza\STIN-Burza.csproj", "{07CB9AE1-2EAD-4E47-90CA-9586A2DA469B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STIN-Burza.Tests", "STIN-Burza.Tests\STIN-Burza.Tests.csproj", "{83E8A839-FC57-4179-B379-63724A236836}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{07CB9AE1-2EAD-4E47-90CA-9586A2DA469B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07CB9AE1-2EAD-4E47-90CA-9586A2DA469B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07CB9AE1-2EAD-4E47-90CA-9586A2DA469B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E8A839-FC57-4179-B379-63724A236836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E8A839-FC57-4179-B379-63724A236836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E8A839-FC57-4179-B379-63724A236836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E8A839-FC57-4179-B379-63724A236836}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
