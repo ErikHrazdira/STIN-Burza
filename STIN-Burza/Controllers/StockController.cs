@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using STIN_Burza.Models;
 using STIN_Burza.Services;
@@ -16,6 +17,7 @@ namespace STIN_Burza.Controllers
         private readonly ExternalApiService externalApiService;
         private readonly string _ratingThresholdFilePath;
         private const int DefaultRatingThreshold = 0;
+        private readonly IConfiguration configuration;
 
         public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager, ExternalApiService externalApiService, IConfiguration configuration, IWebHostEnvironment environment)
         {
@@ -24,6 +26,7 @@ namespace STIN_Burza.Controllers
             this.alphaVantageService = alphaVantageService;
             this.stockFilterManager = stockFilterManager;
             this.externalApiService = externalApiService;
+            this.configuration = configuration;
 
             _ratingThresholdFilePath = configuration["Configuration:RatingThresholdFilePath"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "rating_threshold.txt");
 
@@ -66,11 +69,12 @@ namespace STIN_Burza.Controllers
 
                 logger.Log($"Položka '{name}' byla odstraněna z oblíbených.");
             }
-            else {
+            else
+            {
                 logger.Log($"Pokud položka '{name}' neexistuje v oblíbených, odstranění neprobíhá.");
             }
 
-                return RedirectToAction("Index"); // Přesměruje zpět na hlavní stránku
+            return RedirectToAction("Index"); // Přesměruje zpět na hlavní stránku
         }
 
         [HttpPost]
@@ -104,13 +108,26 @@ namespace STIN_Burza.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateAllFavorites()
         {
+            int daysToCheck = int.TryParse(configuration["Configuration:WorkingDaysBackValues"], out var parsedValue) ? parsedValue : 7;
             var favoriteStocks = stockService.LoadFavoriteStocks();
+
             foreach (var stock in favoriteStocks)
             {
+                if (!ShouldUpdate(stock.PriceHistory, daysToCheck))
+                {
+                    logger.Log($"Historická data pro akcii '{stock.Name}' jsou aktuální pro posledních {daysToCheck} pracovních dnů. Přeskakuji aktualizaci.");
+                    continue;
+                }
+
+                logger.Log($"Aktualizuji historická data pro akcii '{stock.Name}'.");
                 var updatedStock = await alphaVantageService.GetStockWithHistoryAsync(stock.Name);
                 if (updatedStock != null)
                 {
                     stock.PriceHistory = updatedStock.PriceHistory; // Aktualizace historických cen
+                }
+                else
+                {
+                    logger.Log($"Nepodařilo se získat aktualizovaná data pro akcii '{stock.Name}'.");
                 }
             }
 
@@ -119,39 +136,73 @@ namespace STIN_Burza.Controllers
             return RedirectToAction("Index");
         }
 
+        private bool ShouldUpdate(List<StockPrice> history, int daysToCheck)
+        {
+            if (history == null || !history.Any())
+            {
+                return true; // Žádná data, je třeba aktualizovat
+            }
+
+            int checkedDays = 0;
+            var currentDate = DateTime.Now.Date;
+
+            // Kontrola pro dnešek
+            if (!history.Any(p => p.Date.Date == currentDate))
+            {
+                return true; // Chybí data pro dnešek
+            }
+            checkedDays++;
+            currentDate = currentDate.AddDays(-1); // Začneme kontrolovat předchozí dny
+
+            while (checkedDays < daysToCheck)
+            {
+                if (currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    if (!history.Any(p => p.Date.Date == currentDate))
+                    {
+                        return true; // Chybí data pro alespoň jeden z předchozích pracovních dnů
+                    }
+                    checkedDays++;
+                }
+                currentDate = currentDate.AddDays(-1);
+            }
+
+            return false; // Data pro dnešek a 'daysToCheck - 1' předchozích pracovních dnů existují
+        }
+
         [HttpPost]
-    public async Task<IActionResult> StartProcess()
-    {
-        logger.Log("Spuštěn proces filtrování a odesílání dat.");
-
-        var favorites = stockService.LoadFavoriteStocks();
-        var historicalData = new Dictionary<Stock, List<StockPrice>>();
-
-        foreach (var stock in favorites)
+        public async Task<IActionResult> StartProcess()
         {
-            // Předpokládáme, že PriceHistory je již naplněna daty
-            historicalData[stock] = stock.PriceHistory;
-        }
+            logger.Log("Spuštěn proces filtrování a odesílání dat.");
 
-        // Získání názvů položek, které prošly filtry
-        var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
+            var favorites = stockService.LoadFavoriteStocks();
+            var historicalData = new Dictionary<Stock, List<StockPrice>>();
 
-        // Odeslání dat na externí API
-        if (passingStockNames.Any())
-        {
-            logger.Log($"Odesílám informace o položkách: {string.Join(", ", passingStockNames)} na externí API.");
-            await externalApiService.SendPassingStockNames(passingStockNames);
+            foreach (var stock in favorites)
+            {
+                // Předpokládáme, že PriceHistory je již naplněna daty
+                historicalData[stock] = stock.PriceHistory;
+            }
+
+            // Získání názvů položek, které prošly filtry
+            var passingStockNames = stockFilterManager.GetPassingStockNames(favorites);
+
+            // Odeslání dat na externí API
+            if (passingStockNames.Any())
+            {
+                logger.Log($"Odesílám informace o položkách: {string.Join(", ", passingStockNames)} na externí API.");
+                await externalApiService.SendPassingStockNames(passingStockNames);
                 logger.Log("Odesílání na externí API dokončeno.");
-        }
-        else
-        {
+            }
+            else
+            {
                 logger.Log("Žádná položka neprošla všemi filtry, nic nebylo odesláno na externí API.");
-        }
+            }
 
-        ViewBag.FilteredStocks = passingStockNames;
-        ViewBag.LogLines = logger.GetLastLines();
-        return RedirectToAction("Index");
-    }
+            ViewBag.FilteredStocks = passingStockNames;
+            ViewBag.LogLines = logger.GetLastLines();
+            return RedirectToAction("Index");
+        }
 
         [HttpPost]
         public IActionResult UpdateRatingThreshold(int ratingThreshold)
