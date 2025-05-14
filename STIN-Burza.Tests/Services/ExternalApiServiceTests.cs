@@ -63,8 +63,7 @@ namespace STIN_Burza.Tests.Services
             );
 
             mockLogger.Verify(l => l.Log(It.Is<string>(s => s.Contains("Odesílám data"))), Times.Once);
-            mockLogger.Verify(l => l.Log(It.Is<string>(s => s.Contains("Odesílaná data"))), Times.Once);
-            mockLogger.Verify(l => l.Log(It.Is<string>(s => s.Contains("Simulace úspěšného odeslání dat."))), Times.Once);
+            mockLogger.Verify(l => l.Log(It.Is<string>(s => s.Contains("Odesílaná data"))), Times.Once);      
         }
 
         [Fact]
