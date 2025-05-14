@@ -34,7 +34,7 @@ namespace STIN_Burza.Services
                     }
                 }
 
-                // Krok 2: Získání historických cen
+                // Krok 2: Získání historických cen.
                 var previousPrices = await _alphaVantageDataProvider.GetDailyPricesAsync(symbol, workingDaysBack - stock.PriceHistory.Count);
                 foreach (var price in previousPrices)
                 {
