@@ -48,7 +48,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
-          path: ./CoverageReport
+          path: ./public/coverage
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/coverage
 
       - name: dotnet publish
         run: dotnet publish -c Release -o ./myapp
