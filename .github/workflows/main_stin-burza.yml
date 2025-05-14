@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - STIN-Burza
 
 on:
@@ -21,10 +18,28 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '3.1'
+          dotnet-version: '3.1' # Ujisti se, že odpovídá tvému projektu
+
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
+
+      - name: Test with coverage
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage.opencover.xml --verbosity normal
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g reportgenerator
+
+      - name: Generate code coverage report
+        run: reportgenerator -reports:"./STIN-Burza.Tests/coverage.opencover.xml" -targetdir:"./CoverageReport" -reporttypes:Html
+
+      - name: Upload coverage report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ./CoverageReport
 
       - name: dotnet publish
         run: dotnet publish -c Release -o ./myapp
@@ -50,7 +65,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -65,4 +80,3 @@ jobs:
           app-name: 'STIN-Burza'
           slot-name: 'Production'
           package: .
-          
