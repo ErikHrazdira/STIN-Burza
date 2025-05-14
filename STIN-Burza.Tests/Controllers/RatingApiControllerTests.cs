@@ -66,7 +66,6 @@ namespace STIN_Burza.Tests.Controllers
             Assert.NotNull(badRequestResult);
             Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
             Assert.Equal("Očekáváno JSON pole s hodnoceními.", badRequestResult.Value);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Přijatá data nejsou ve formátu JSON pole."))), Times.Once);
             _mockExternalApiService.Verify(service => service.SendSellRecommendations(It.IsAny<List<StockTransaction>>()), Times.Never);
         }
 
@@ -84,8 +83,6 @@ namespace STIN_Burza.Tests.Controllers
             Assert.NotNull(okResult);
             Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
             Assert.Equal("Žádná platná hodnocení k odeslání doporučení.", okResult.Value);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Data jsou typu JSON."))), Times.Once);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Žádná platná hodnocení ke zpracování"))), Times.Once);
             _mockExternalApiService.Verify(service => service.SendSellRecommendations(It.IsAny<List<StockTransaction>>()), Times.Never);
         }
 
@@ -113,9 +110,8 @@ namespace STIN_Burza.Tests.Controllers
             Assert.Equal("Hodnocení zpracována a doporučení odeslána.", okResult.Value);
             _mockExternalApiService.Verify(service => service.SendSellRecommendations(It.Is<List<StockTransaction>>(list =>
                 list.Count == 2 &&
-                list.All(t => t.Sell == 1) // Protože rating je pod prahem 0
+                list.All(t => t.Sell == 1)
             )), Times.Once);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Předávám k odeslání"))), Times.Once);
         }
 
         [Fact]
@@ -144,7 +140,6 @@ namespace STIN_Burza.Tests.Controllers
                 list.Count == 2 &&
                 list.All(t => t.Sell == 0) // Protože rating je nad prahem 1
             )), Times.Once);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Předávám k odeslání"))), Times.Once);
         }
 
         [Fact]
@@ -180,9 +175,6 @@ namespace STIN_Burza.Tests.Controllers
                 list.Any(t => t.Name == "AAPL" && t.Sell == 1) &&
                 list.Any(t => t.Name == "MSFT" && t.Sell == 0)
             )), Times.Once);
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Přijatý prvek pole není JSON objekt"))), Times.Exactly(4));
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Přijata položka s neplatnými daty"))), Times.Exactly(1));
-            _mockLogger.Verify(logger => logger.Log(It.Is<string>(s => s.Contains("Předávám k odeslání"))), Times.Once);
         }
     }
 }

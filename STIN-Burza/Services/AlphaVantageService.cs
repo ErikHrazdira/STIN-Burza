@@ -89,7 +89,12 @@ namespace STIN_Burza.Services
                 return new List<StockPrice>();
             }
 
-            var dates = GetPreviousWorkingDays(series, count);
+            var dates = series.Children<JProperty>()
+                .Select(p => DateTime.Parse(p.Name))
+                .OrderByDescending(d => d)
+                .Where(d => d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
+                .Take(count)
+                .ToList();
 
             return dates.Select(date =>
             {
@@ -112,17 +117,5 @@ namespace STIN_Burza.Services
             }).Where(price => price != null).ToList()!;
         }
 
-        // Získání pracovních dnů z API
-        private List<DateTime> GetPreviousWorkingDays(JToken series, int count)
-        {
-            var allDates = series.Children<JProperty>()
-                .Select(p => DateTime.Parse(p.Name))
-                .OrderByDescending(d => d)
-                .Where(d => d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
-                .Take(count)
-                .ToList();
-
-            return allDates;
-        }
     }
 }

@@ -133,7 +133,7 @@ namespace STIN_Burza.Controllers
             return RedirectToAction("Index");
         }
 
-        private static bool ShouldUpdate(List<StockPrice> history, int daysToCheck)
+        public static bool ShouldUpdate(List<StockPrice> history, int daysToCheck)
         {
             if (history == null || history.Count == 0)
             {
@@ -204,43 +204,23 @@ namespace STIN_Burza.Controllers
         [HttpPost]
         public IActionResult UpdateRatingThreshold(int ratingThreshold)
         {
-            SaveRatingThreshold(ratingThreshold);
-            logger.Log($"Uživatel uložil nový práh hodnocení: {ratingThreshold}, soubor: {_ratingThresholdFilePath}");
+            if (ratingThreshold >= -10 && ratingThreshold <= 10)
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(_ratingThresholdFilePath, ratingThreshold.ToString());
+                }
+                catch (Exception ex)
+                {
+                    logger.Log($"Chyba při ukládání prahu hodnocení do souboru '{_ratingThresholdFilePath}': {ex.Message}");
+                }
+                logger.Log($"Uživatel uložil nový práh hodnocení: {ratingThreshold}, soubor: {_ratingThresholdFilePath}");
+            }
+            else
+            {
+                logger.Log($"Uživatel se pokusil uložit neplatný práh hodnocení: {ratingThreshold}, soubor: {_ratingThresholdFilePath}");
+            }
             return RedirectToAction("Index");
-        }
-
-        private int LoadRatingThreshold()
-        {
-            try
-            {
-                string content = System.IO.File.ReadAllText(_ratingThresholdFilePath);
-                if (int.TryParse(content, out int threshold))
-                {
-                    return threshold;
-                }
-                else
-                {
-                    logger.Log($"Nepodařilo se načíst práh hodnocení ze souboru '{_ratingThresholdFilePath}', použita výchozí hodnota: {DefaultRatingThreshold}");
-                    return DefaultRatingThreshold;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Log($"Chyba při načítání prahu hodnocení ze souboru '{_ratingThresholdFilePath}': {ex.Message}, použita výchozí hodnota: {DefaultRatingThreshold}");
-                return DefaultRatingThreshold;
-            }
-        }
-
-        private void SaveRatingThreshold(int threshold)
-        {
-            try
-            {
-                System.IO.File.WriteAllText(_ratingThresholdFilePath, threshold.ToString());
-            }
-            catch (Exception ex)
-            {
-                logger.Log($"Chyba při ukládání prahu hodnocení do souboru '{_ratingThresholdFilePath}': {ex.Message}");
-            }
         }
 
     }
