@@ -491,5 +491,45 @@ namespace STIN_Burza.Tests.Controllers
             int daysToCheck = 5;
             Assert.False(StockController.ShouldUpdate(history.OrderByDescending(p => p.Date).ToList(), daysToCheck));
         }
+
+        [Fact]
+        public void Constructor_CreatesThresholdFileWithDefaultValue_IfNotExists()
+        {
+            // Arrange
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".txt");
+            var mockConfig = new Mock<IConfiguration>();
+            mockConfig.Setup(c => c["Configuration:RatingThresholdFilePath"]).Returns(tempFile);
+
+            var mockEnv = new Mock<IWebHostEnvironment>();
+            mockEnv.Setup(e => e.ContentRootPath).Returns(Path.GetTempPath());
+
+            var mockLogger = new Mock<IMyLogger>();
+            var mockStockService = new Mock<IStockService>();
+            var mockAlphaVantage = new Mock<IAlphaVantageService>();
+            var mockFilterManager = new Mock<IStockFilterManager>();
+            var mockExternalApi = new Mock<IExternalApiService>();
+
+            // Ensure file does not exist
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+
+            // Act
+            var controller = new StockController(
+                mockStockService.Object,
+                mockLogger.Object,
+                mockAlphaVantage.Object,
+                mockFilterManager.Object,
+                mockExternalApi.Object,
+                mockConfig.Object,
+                mockEnv.Object
+            );
+
+            // Assert
+            Assert.True(File.Exists(tempFile));
+            Assert.Equal("0", File.ReadAllText(tempFile));
+
+            // Cleanup
+            File.Delete(tempFile);
+        }
     }
 }

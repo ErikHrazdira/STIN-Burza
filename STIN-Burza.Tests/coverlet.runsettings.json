@@ -1,8 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/coverlet-coverage/coverlet/main/schema/coverlet.runsettings.schema.json",
   "Exclude": [
-    "STIN-Burza*Program.cs",
-    "**/Views/**/*"
-  ],
-  "ExcludeSourceFiles": true
+    "STIN-Burza/Program.cs",
+    "**/*.cshtml"
+  ]
 }
