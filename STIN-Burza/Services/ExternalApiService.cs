@@ -56,14 +56,12 @@ namespace STIN_Burza.Services
 
             try
             {
-                _logger.Log($"Odesílám data na {_httpClient.BaseAddress}/{_listStockEndpoint}");
+                _logger.Log($"Odesílám data na {_httpClient.BaseAddress}{_listStockEndpoint}");
                 _logger.Log($"Odesílaná data: {JsonSerializer.Serialize(transactions)}");
 
                 // Simulace odeslání
-                var response = await _httpClient.PostAsJsonAsync($"/{_listStockEndpoint}", transactions);
+                var response = await _httpClient.PostAsJsonAsync($"{_listStockEndpoint}", transactions);
                 response.EnsureSuccessStatusCode();
-
-                _logger.Log("Simulace úspěšného odeslání dat.");
             }
             catch (Exception ex)
             {
