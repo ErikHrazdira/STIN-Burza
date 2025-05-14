@@ -7,7 +7,7 @@ namespace STIN_Burza.Services
 {
     public class StockService : IStockService
     {
-        private readonly string filePath = "App_Data/favorite_stocks.json";
+        protected virtual string filePath { get; } = "App_Data/favorite_stocks.json";
 
         // nacte oblibene ze souboru
         public List<Stock> LoadFavoriteStocks()

@@ -5,6 +5,11 @@
     <RootNamespace>STIN_Burza.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+  <CollectCoverage>True</CollectCoverage>
+  <CoverletOutputFormat>opencover</CoverletOutputFormat>
+  <CoverletOutput>./coverage.opencover.xml</CoverletOutput>
+  <Exclude>[STIN-Burza]*Program.cs</Exclude>
+  <Exclude>**/*.cshtml</Exclude>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
