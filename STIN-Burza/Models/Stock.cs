@@ -2,6 +2,7 @@
 {
     public class Stock(string name)
     {
+
         public string Name { get; set; } = name;
         public List<StockPrice> PriceHistory { get; set; } = [];
 
