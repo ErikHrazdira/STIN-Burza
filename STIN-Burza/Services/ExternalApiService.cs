@@ -30,7 +30,9 @@ namespace STIN_Burza.Services
 
             if (!string.IsNullOrEmpty(_apiUrl) && _apiPort > 0)
             {
-                _httpClient.BaseAddress = new Uri($"{_apiUrl}:{_apiPort}");
+                //_httpClient.BaseAddress = new Uri($"{_apiUrl}:{_apiPort}");
+                _httpClient.BaseAddress = new Uri(_apiUrl);
+
             }
             else
             {
