@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - STIN-Burza
+name: .NET
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '3.1' # Ujisti se, že odpovídá tvému projektu
+          dotnet-version: '3.1'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -29,11 +29,20 @@ jobs:
       - name: Test with coverage
         run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage.opencover.xml --verbosity normal
 
-      - name: Install ReportGenerator
-        run: dotnet tool install -g reportgenerator
+      - name: Create tool manifest if needed
+        run: |
+          if (-not (Test-Path -Path ".config" -PathType Container)) {
+            New-Item -ItemType Directory -Path ".config"
+          }
+          if (-not (Test-Path -Path ".config/dotnet-tools.json")) {
+            dotnet new tool-manifest
+          }
+
+      - name: Install ReportGenerator locally
+        run: dotnet tool install --local dotnet-reportgenerator-globaltool
 
       - name: Generate code coverage report
-        run: reportgenerator -reports:"./STIN-Burza.Tests/coverage.opencover.xml" -targetdir:"./CoverageReport" -reporttypes:Html
+        run: dotnet tool run reportgenerator -reports:"./STIN-Burza.Tests/coverage.opencover.xml" -targetdir:"./CoverageReport" -reporttypes:Html
 
       - name: Upload coverage report as artifact
         uses: actions/upload-artifact@v4
@@ -57,8 +66,8 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
