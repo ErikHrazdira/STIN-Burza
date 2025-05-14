@@ -31,8 +31,12 @@ jobs:
 
       - name: Create tool manifest if needed
         run: |
-          if not exist ".config" mkdir .config
-          if not exist ".config/dotnet-tools.json" dotnet new tool-manifest
+          if (-not (Test-Path -Path ".config" -PathType Container)) {
+            New-Item -ItemType Directory -Path ".config"
+          }
+          if (-not (Test-Path -Path ".config/dotnet-tools.json")) {
+            dotnet new tool-manifest
+          }
 
       - name: Install ReportGenerator locally
         run: dotnet tool install --local dotnet-reportgenerator-globaltool
