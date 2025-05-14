@@ -29,6 +29,11 @@ jobs:
       - name: Test with coverage
         run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage.opencover.xml --verbosity normal
 
+      - name: Create tool manifest if needed
+        run: |
+          if not exist ".config" mkdir .config
+          if not exist ".config/dotnet-tools.json" dotnet new tool-manifest
+
       - name: Install ReportGenerator locally
         run: dotnet tool install --local dotnet-reportgenerator-globaltool
 
