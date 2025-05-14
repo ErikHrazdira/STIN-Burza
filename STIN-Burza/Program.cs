@@ -7,22 +7,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton(provider =>
+builder.Services.AddSingleton<IMyLogger>(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
     var logFilePath = config["Configuration:LogFilePath"];
-    return new Logger(logFilePath ?? "Logs/log.txt");
+    return new MyLogger(logFilePath ?? "Logs/log.txt");
 });
 
-builder.Services.AddScoped<StockService>();
-builder.Services.AddSingleton<AlphaVantageService>();
+builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IAlphaVantageService, AlphaVantageService>();
 
 builder.Services.AddTransient<IStockFilter, ConsecutiveFallingDaysFilter>();
 builder.Services.AddTransient<IStockFilter, PriceDropsInLastWindowFilter>();
-builder.Services.AddTransient<StockFilterManager>();
+builder.Services.AddTransient<IStockFilterManager, StockFilterManager>();
 
-builder.Services.AddHttpClient<ExternalApiService>();
-builder.Services.AddTransient<ExternalApiService>();
+builder.Services.AddHttpClient<IExternalApiService, ExternalApiService>();
 
 var app = builder.Build();
 

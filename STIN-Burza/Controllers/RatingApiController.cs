@@ -10,11 +10,11 @@ namespace STIN_Burza.Controllers
     [Route("")]
     public class RatingApiController : ControllerBase
     {
-        private readonly Logger _logger;
-        private readonly ExternalApiService _externalApiService;
+        private readonly IMyLogger _logger;
+        private readonly IExternalApiService _externalApiService;
         private readonly IConfiguration _configuration;
 
-        public RatingApiController(Logger logger, ExternalApiService externalApiService, IConfiguration configuration)
+        public RatingApiController(IMyLogger logger, IExternalApiService externalApiService, IConfiguration configuration)
         {
             _logger = logger;
             _externalApiService = externalApiService;

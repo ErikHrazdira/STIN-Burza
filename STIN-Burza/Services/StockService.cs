@@ -5,7 +5,7 @@ using Formatting = Newtonsoft.Json.Formatting;
 
 namespace STIN_Burza.Services
 {
-    public class StockService
+    public class StockService : IStockService
     {
         private readonly string filePath = "App_Data/favorite_stocks.json";
 

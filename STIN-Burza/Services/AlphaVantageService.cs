@@ -3,14 +3,14 @@ using STIN_Burza.Models;
 
 namespace STIN_Burza.Services
 {
-    public class AlphaVantageService
+    public class AlphaVantageService : IAlphaVantageService
     {
         private readonly string apiKey;
         private readonly int workingDaysBack;
         private readonly HttpClient httpClient = new();
-        private readonly Logger logger;
+        private readonly IMyLogger logger;
 
-        public AlphaVantageService(IConfiguration config, Logger logger)
+        public AlphaVantageService(IConfiguration config, IMyLogger logger)
         {
             this.apiKey = config["AlphaVantage:ApiKey"] ?? throw new Exception("API klíč není nastaven.");
             this.workingDaysBack = int.Parse(config["Configuration:WorkingDaysBackValues"] ?? "7");

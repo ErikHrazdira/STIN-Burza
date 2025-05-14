@@ -1,13 +1,14 @@
 ﻿using STIN_Burza.Models;
 using System.Text.Json;
 
+
 namespace STIN_Burza.Services
 {
-    public class ExternalApiService
+    public class ExternalApiService : IExternalApiService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private readonly Logger _logger;
+        private readonly IMyLogger _logger;
         private readonly string _apiUrl;
         private readonly int _apiPort;
         private readonly string _listStockEndpoint;
@@ -16,7 +17,7 @@ namespace STIN_Burza.Services
         public HttpClient HttpClient => _httpClient;
         public string SendSellRecommendationEndpoint => _sendSellRecommendationEndpoint;
 
-        public ExternalApiService(HttpClient httpClient, IConfiguration configuration, Logger logger)
+        public ExternalApiService(HttpClient httpClient, IConfiguration configuration, IMyLogger logger)
         {
             _httpClient = httpClient;
             _configuration = configuration;

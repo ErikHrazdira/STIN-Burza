@@ -10,16 +10,16 @@ namespace STIN_Burza.Controllers
 {
     public class StockController : Controller
     {
-        private readonly StockService stockService;
-        private readonly Logger logger;
-        private readonly AlphaVantageService alphaVantageService;
-        private readonly StockFilterManager stockFilterManager;
-        private readonly ExternalApiService externalApiService;
+        private readonly IStockService stockService;
+        private readonly IMyLogger logger;
+        private readonly IAlphaVantageService alphaVantageService;
+        private readonly IStockFilterManager stockFilterManager;
+        private readonly IExternalApiService externalApiService;
         private readonly string _ratingThresholdFilePath;
         private const int DefaultRatingThreshold = 0;
         private readonly IConfiguration configuration;
 
-        public StockController(StockService stockService, Logger logger, AlphaVantageService alphaVantageService, StockFilterManager stockFilterManager, ExternalApiService externalApiService, IConfiguration configuration, IWebHostEnvironment environment)
+        public StockController(IStockService stockService, IMyLogger logger, IAlphaVantageService alphaVantageService, IStockFilterManager stockFilterManager, IExternalApiService externalApiService, IConfiguration configuration, IWebHostEnvironment environment)
         {
             this.stockService = stockService;
             this.logger = logger;

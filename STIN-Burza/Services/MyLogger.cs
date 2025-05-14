@@ -1,6 +1,6 @@
 ﻿namespace STIN_Burza.Services
 {
-    public class Logger(string logFilePath)
+    public class MyLogger(string logFilePath) : IMyLogger
     {
         private readonly string logFilePath = logFilePath;
 

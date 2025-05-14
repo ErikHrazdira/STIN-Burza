@@ -3,12 +3,12 @@ using STIN_Burza.Models;
 
 namespace STIN_Burza.Services
 {
-    public class StockFilterManager
+    public class StockFilterManager : IStockFilterManager
     {
         private readonly IEnumerable<IStockFilter> _filters;
-        private readonly Logger _logger;
+        private readonly IMyLogger _logger;
 
-        public StockFilterManager(IEnumerable<IStockFilter> filters, Logger logger)
+        public StockFilterManager(IEnumerable<IStockFilter> filters, IMyLogger logger)
         {
             _filters = filters;
             _logger = logger;
