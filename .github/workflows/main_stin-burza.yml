@@ -74,6 +74,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      pages: write
 
     steps:
       - name: Download artifact from build job
@@ -95,3 +96,10 @@ jobs:
           app-name: 'STIN-Burza'
           slot-name: 'Production'
           package: .
+
+      - name: Deploy to GitHub Pages (after Azure deploy)
+        if: always() # Spustit i když pøedchozí kroky selžou (pro testování)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public/coverage
