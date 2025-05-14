@@ -15,6 +15,7 @@ builder.Services.AddSingleton<IMyLogger>(provider =>
 });
 
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IAlphaVantageDataProvider, AlphaVantageDataProvider>();
 builder.Services.AddScoped<IAlphaVantageService, AlphaVantageService>();
 
 builder.Services.AddTransient<IStockFilter, ConsecutiveFallingDaysFilter>();

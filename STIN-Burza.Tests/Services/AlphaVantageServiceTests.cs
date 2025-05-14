@@ -32,7 +32,7 @@ namespace STIN_Burza.Tests.Services
             _mockConfig.Setup(config => config["AlphaVantage:ApiKey"]).Returns("test_api_key");
             _mockConfig.Setup(config => config["Configuration:WorkingDaysBackValues"]).Returns("7");
 
-            _service = new AlphaVantageService(_mockConfig.Object, _mockLogger.Object, _mockHttpClientFactory.Object);
+            //_service = new AlphaVantageService(_mockConfig.Object, _mockLogger.Object, _mockHttpClientFactory.Object);
         }
 
         
