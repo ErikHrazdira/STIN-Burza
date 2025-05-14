@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using STIN_Burza.Models;
+using System;
+
 
 namespace STIN_Burza.Services
 {
@@ -7,14 +9,20 @@ namespace STIN_Burza.Services
     {
         private readonly string apiKey;
         private readonly int workingDaysBack;
-        private readonly HttpClient httpClient = new();
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMyLogger logger;
 
-        public AlphaVantageService(IConfiguration config, IMyLogger logger)
+        public AlphaVantageService(IConfiguration config, IMyLogger logger, IHttpClientFactory httpClientFactory)
         {
             this.apiKey = config["AlphaVantage:ApiKey"] ?? throw new Exception("API klíč není nastaven.");
             this.workingDaysBack = int.Parse(config["Configuration:WorkingDaysBackValues"] ?? "7");
             this.logger = logger;
+            this._httpClientFactory = httpClientFactory;
+        }
+
+        private HttpClient GetHttpClient()
+        {
+            return _httpClientFactory.CreateClient();
         }
 
         public async Task<Stock?> GetStockWithHistoryAsync(string symbol)
@@ -51,7 +59,8 @@ namespace STIN_Burza.Services
         private async Task<double> GetIntradayStockPrice(string symbol)
         {
             var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=15min&apikey={apiKey}";
-            var response = await httpClient.GetStringAsync(url);
+            using var client = GetHttpClient();
+            var response = await client.GetStringAsync(url);
 
             var data = JObject.Parse(response);
             var timeSeries = data["Time Series (15min)"];
@@ -78,7 +87,8 @@ namespace STIN_Burza.Services
         private async Task<List<StockPrice>> GetDailyStockPrices(string symbol, int count)
         {
             var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}";
-            var response = await httpClient.GetStringAsync(url);
+            using var client = GetHttpClient();
+            var response = await client.GetStringAsync(url);
 
             var data = JObject.Parse(response);
             var series = data["Time Series (Daily)"];
@@ -116,6 +126,5 @@ namespace STIN_Burza.Services
                 return null;
             }).Where(price => price != null).ToList()!;
         }
-
     }
 }
