@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read
-      pages: write # Potøebujeme write pro nasazení na gh-pages
+      pages: write # PotÅ™ebujeme write pro nasazenÃ­ na gh-pages
 
     steps:
       - uses: actions/checkout@v4
